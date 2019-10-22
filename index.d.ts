@@ -45,6 +45,7 @@ export interface BraftEditorProps {
   imageResizable?: boolean;
   headings?: string[];
   colors?: string[];
+  comments?: string[];
   fontSizes?: number[];
   fontFamilies?: { name: string; family: string }[];
   lineHeights?: number[];
@@ -68,6 +69,7 @@ export interface BraftEditorProps {
   contentClassName?: string;
   contentStyle?: React.CSSProperties;
   onChange?: (editorState: EditorState) => void;
+  onMentionChange: Function;
   onFocus?: Function;
   onBlur?: Function;
   onTab?: Function;

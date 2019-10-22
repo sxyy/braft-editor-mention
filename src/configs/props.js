@@ -121,11 +121,13 @@ export default {
   contentStyle: {},
   draftProps: {},
   hooks: {},
+  mentions: [],
   onChange: null,
   onFocus: null,
   onBlur: null,
   onTab: null,
   onDelete: null,
+  onMentionChange: null,
   onSave: null,
   fixPlaceholder: false
 }

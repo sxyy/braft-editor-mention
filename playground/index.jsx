@@ -37,9 +37,10 @@ class Demo extends React.Component {
     super(props)
 
     this.state = {
+      mentions: [],
       count: 0,
       readOnly: false,
-      editorState: BraftEditor.createEditorState('<p data-foo="adasd" class="my-classname"><img src="https://www.baidu.com/img/bd_logo1.png?where=super" /><span style="color:#e25041;">asdasdasda</span>asdads</p>')
+      editorState: BraftEditor.createEditorState('<p data-foo="adasd" class="my-classname"><span style="color:#e25041;">asdasdasda</span>asdads</p>')
     }
 
   }
@@ -55,6 +56,13 @@ class Demo extends React.Component {
 
   logRAW = () => {
     console.log(this.state.editorState.toRAW())
+  }
+
+  handleMentionChange = async(text) => {
+    console.log('mentionsChange', text);
+    this.setState({
+      mentions: ['aa', 'bb', 'c']
+    })
   }
 
   render() {
@@ -96,6 +104,8 @@ class Demo extends React.Component {
               // disabled: true,
               component: <h1>Hello World!</h1>
             }]}
+            mentions = {this.state.mentions}
+            onMentionChange = {this.handleMentionChange}
             colors={['#e25041']}
             headings={['header-one', 'unstyled']}
             placeholder="Hello World!"

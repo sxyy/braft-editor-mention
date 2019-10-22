@@ -7,13 +7,15 @@ import { ColorUtils, ContentUtils } from 'braft-utils'
 import { Editor, EditorState } from 'draft-js'
 import { Map } from 'immutable'
 import getKeyBindingFn from 'configs/keybindings'
+import SuggestionList from './../suggest';
+import addSuggestion from './../suggest/addSuggestion';
 import defaultProps from 'configs/props'
 import { keyCommandHandlers, returnHandlers, beforeInputHandlers, dropHandlers, droppedFilesHandlers, copyHandlers, pastedFilesHandlers, pastedTextHandlers, compositionStartHandler } from 'configs/handlers'
 import { getBlockRendererFn, getBlockRenderMap, getBlockStyleFn, getCustomStyleMap, getCustomStyleFn, getDecorators } from 'renderers'
 import { compositeStyleImportFn, compositeStyleExportFn, compositeEntityImportFn, compositeEntityExportFn, compositeBlockImportFn, compositeBlockExportFn, getPropInterceptors } from 'helpers/extension'
 import ControlBar from 'components/business/ControlBar'
 
-const buildHooks= (hooks) => (hookName, defaultReturns = {}) => {
+const buildHooks = (hooks) => (hookName, defaultReturns = {}) => {
   return hooks[hookName] || (() => defaultReturns)
 }
 
@@ -43,17 +45,19 @@ const getConvertOptions = (props) => {
 
 }
 
+var  filteredArrayTemp;
+
 export default class BraftEditor extends React.Component {
 
   static defaultProps = defaultProps
 
-  constructor (props) {
+  constructor(props) {
 
     super(props)
 
     this.editorProps = this.getEditorProps(props)
     this.editorDecorators = getDecorators(this.editorProps.editorId || this.editorProps.id)
-
+    this.autocompleteState = null;
     this.isFocused = false
     this.isLiving = false
     this.braftFinder = null
@@ -78,16 +82,17 @@ export default class BraftEditor extends React.Component {
       tempColors,
       editorState: defaultEditorState,
       isFullscreen: false,
-      draftProps: {}
+      draftProps: {},
+      autocompleteState: null,
     }
     this.containerNode = null
   }
 
-  getEditorProps (props) {
+  getEditorProps(props) {
 
     props = props || this.props
 
-    const {value, defaultValue, onChange, ...restProps} = props// eslint-disable-line no-unused-vars
+    const { value, defaultValue, onChange, ...restProps } = props// eslint-disable-line no-unused-vars
     const propInterceptors = getPropInterceptors(restProps.editorId || restProps.id)
 
     if (propInterceptors.length === 0) {
@@ -104,7 +109,7 @@ export default class BraftEditor extends React.Component {
 
   }
 
-  componentWillMount () {
+  componentWillMount() {
 
     if (isControlEnabled(this.editorProps, 'media')) {
 
@@ -124,13 +129,13 @@ export default class BraftEditor extends React.Component {
 
   }
 
-  componentDidMount () {
+  componentDidMount() {
 
     this.isLiving = true
 
   }
 
-  componentDidUpdate (_, prevState) {
+  componentDidUpdate(_, prevState) {
 
     if (prevState.editorState !== this.state.editorState) {
       this.state.editorState.setConvertOptions(getConvertOptions(this.editorProps))
@@ -138,7 +143,7 @@ export default class BraftEditor extends React.Component {
 
   }
 
-  componentWillReceiveProps (props) {
+  componentWillReceiveProps(props) {
 
     this.editorProps = this.getEditorProps(props)
 
@@ -179,14 +184,14 @@ export default class BraftEditor extends React.Component {
 
         const tempColors = ColorUtils.detectColorsFromDraftState(nextEditorState.toRAW(true))
         nextEditorState.setConvertOptions(getConvertOptions(this.editorProps))
-  
+
         this.setState({
           tempColors: filterColors([...this.state.tempColors, ...tempColors], currentProps.colors),
           editorState: nextEditorState
         }, () => {
           this.props.onChange && this.props.onChange(nextEditorState)
         })
-  
+
       } else {
         this.setState({
           editorState: nextEditorState
@@ -197,13 +202,103 @@ export default class BraftEditor extends React.Component {
 
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.isLiving = false
     this.controlBarInstance && this.controlBarInstance.closeBraftFinder()
   }
 
-  onChange = (editorState, callback) => {
+  hasEntityAtSelection = (editorState) => {
 
+
+    const selection = editorState.getSelection();
+    if (!selection.getHasFocus()) {
+      return false;
+    }
+
+    const contentState = editorState.getCurrentContent();
+    const block = contentState.getBlockForKey(selection.getStartKey());
+    return !!block.getEntityAt(selection.getStartOffset() - 1);
+  };
+
+  getAutocompleteRange = (editorState, trigger) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) {
+      return null;
+    }
+
+    if (this.hasEntityAtSelection(editorState)) {
+      return null;
+    }
+
+    const range = selection.getRangeAt(0);
+    let text = range.startContainer.textContent;
+    text = text.substring(0, range.startOffset);
+    const index = text.lastIndexOf(trigger);
+    if (index === -1) {
+      return null;
+    }
+    text = text.substring(index);
+    return {
+      text,
+      start: index,
+      end: range.startOffset
+    };
+  };
+
+  getAutocompleteState = (editorState, invalidate = true) => {
+    if (!invalidate) {
+      return this.autocompleteState;
+    }
+
+    var type = null;
+    var trigger = null;
+    // const tagRange = this.getAutocompleteRange(editorState, '#');
+    const personRange = this.getAutocompleteRange(editorState, '@');
+    if (!personRange) {
+      this.autocompleteState = null;
+      return null;
+    }
+    var range = personRange;
+    type = 2;
+    trigger = '@';
+    // if (!tagRange) {
+    //   range = personRange;
+    //   type = 2;
+    //   trigger = '@';
+    // }
+
+    // if (!personRange) {
+    //   range = tagRange;
+    //   type = 1;
+    //   trigger = '#';
+    // }
+
+    if (!range) {
+      range = tagRange.start > personRange.start ? tagRange : personRange;
+      type = tagRange.start > personRange.start ? 1 : 2;
+      trigger = tagRange.start > personRange.start ? '#' : '@';
+    }
+    let mentionText = range.text.substring(1, range.text.length);
+    this.editorProps.onMentionChange(mentionText);
+    const tempRange = window.getSelection().getRangeAt(0).cloneRange();
+    tempRange.setStart(tempRange.startContainer, range.start);
+    // const mark = document.createElement('mark');
+    // tempRange.surroundContents(mark);
+    const rangeRect = tempRange.getBoundingClientRect();
+    const editReact = document.getElementById('editor').getBoundingClientRect();
+    let [left, top] = [rangeRect.left - editReact.left, rangeRect.bottom + 10 - editReact.top];
+    this.autocompleteState = {
+      trigger,
+      type,
+      left,
+      top,
+      text: range.text,
+      selectedIndex: 0
+    };
+    return this.autocompleteState;
+  };
+
+  onChange = (editorState, callback) => {
     if (!(editorState instanceof EditorState)) {
       editorState = EditorState.set(editorState, {
         decorator: this.editorDecorators
@@ -219,7 +314,40 @@ export default class BraftEditor extends React.Component {
       callback && callback(editorState)
     })
 
+    window.requestAnimationFrame(() => {
+      this.setState({ autocompleteState: this.getAutocompleteState(editorState) });
+    });
   }
+
+
+
+
+  getFilteredArray = (type, text) => {
+    const dataArray = [
+      'Bruce Wayne',
+      'Helga Pataki',
+      'Lady Gaga',
+      'Lana Del Rey',
+      'Marilyn Monroe',
+    ]
+    return dataArray;
+  }
+
+
+  renderAutocomplete = () => {
+    const {
+      autocompleteState,
+    } = this.state;
+    if (!autocompleteState) {
+      return null;
+    }
+    autocompleteState.array = this.props.mentions;
+    autocompleteState.onSuggestionClick = this.onSuggestionItemClick;
+    return <SuggestionList suggestionsState={
+      autocompleteState
+    }
+    />
+  };
 
   getDraftInstance = () => {
     return this.draftInstance
@@ -249,6 +377,71 @@ export default class BraftEditor extends React.Component {
 
   }
 
+  normalizeIndex = (selectedIndex, max) => {
+    let index = selectedIndex % max;
+    if (index < 0) {
+        index += max;
+    }
+    return index;
+}
+
+  onInsert = (insertState) => {
+    if (!this.props.mentions) {
+      return null;
+    }
+    const index = this.normalizeIndex(insertState.selectedIndex, this.props.mentions.length);
+    if (isNaN(index)) {
+      insertState.text =  insertState.text_temp;
+    }else {
+      insertState.text = insertState.trigger + this.props.mentions[index];
+    }
+    return addSuggestion(insertState);
+  };
+
+  getInsertState(selectedIndex, trigger) {
+    const {
+      editorState
+    } = this.state;
+    const currentSelectionState = editorState.getSelection();
+    const end = currentSelectionState.getAnchorOffset();
+    const anchorKey = currentSelectionState.getAnchorKey();
+    const currentContent = editorState.getCurrentContent();
+    const currentBlock = currentContent.getBlockForKey(anchorKey);
+    const blockText = currentBlock.getText();
+    const start = blockText.substring(0, end).lastIndexOf(trigger);
+    return {
+      editorState,
+      start,
+      end,
+      trigger,
+      selectedIndex,
+      text_temp: blockText,
+    }
+  }
+
+  onMentionSelect = () => {
+    let autocompleteState = this.getAutocompleteState(this.state.editorState, false);
+    const insertState = this.getInsertState(autocompleteState.selectedIndex, autocompleteState.trigger);
+    const newEditorState = this.onInsert(insertState);
+    this.props.onChange(newEditorState)
+    // this.onChange(newEditorState);
+  }
+
+
+  commitSelection = (e) => {
+    let autocompleteState = this.getAutocompleteState(this.state.editorState, false);
+    if (!autocompleteState) {
+      return false;
+    }
+    e.preventDefault();
+    this.onMentionSelect();
+    this.autocompleteState = null;
+    this.setState({
+      autocompleteState: null,
+    })
+    return true;
+  };
+
   onTab = (event) => {
 
     if (keyCommandHandlers('tab', this.state.editorState, this) === 'handled') {
@@ -257,6 +450,34 @@ export default class BraftEditor extends React.Component {
 
     this.editorProps.onTab && this.editorProps.onTab(event)
 
+  }
+
+  onArrow = (e, originalHandler, nudgeAmount) => {
+    let autocompleteState = this.getAutocompleteState(this.state.editorState, false);
+    if (!autocompleteState) {
+      if (originalHandler) {
+        originalHandler(e);
+      }
+      return;
+    }
+
+    e.preventDefault();
+    if (autocompleteState.selectedIndex + nudgeAmount >= 0 && autocompleteState.selectedIndex + nudgeAmount <= (this.props.mentions.length - 1)) {
+      autocompleteState.selectedIndex += nudgeAmount;
+      this.autocompleteState = autocompleteState;
+      this.setState({
+        autocompleteState
+      })
+    }
+    
+  }
+
+  onUpArrow = (e) => {
+    this.onArrow(e, this.editorProps.onUpArrow, -1);
+  }
+
+  onDownArrow = (e) => {
+    this.onArrow(e, this.editorProps.onDownArrow, 1);
   }
 
   onFocus = () => {
@@ -275,7 +496,7 @@ export default class BraftEditor extends React.Component {
 
   handleKeyCommand = (command, editorState) => keyCommandHandlers(command, editorState, this)
 
-  handleReturn = (event, editorState) => returnHandlers(event, editorState, this)
+  handleReturn = (event, editorState) => { returnHandlers(event, editorState, this) }
 
   handleBeforeInput = (chars, editorState) => beforeInputHandlers(chars, editorState, this)
 
@@ -323,7 +544,7 @@ export default class BraftEditor extends React.Component {
 
   }
 
-  lockOrUnlockEditor (editorLocked) {
+  lockOrUnlockEditor(editorLocked) {
     this.setState({ editorLocked })
   }
 
@@ -331,14 +552,13 @@ export default class BraftEditor extends React.Component {
     this.containerNode = containerNode
   }
 
-  render () {
-    
+  render() {
+
     let {
       id, editorId, controls, excludeControls, extendControls, readOnly, disabled, media, language, colors, colorPicker, colorPickerTheme, colorPickerAutoHide, hooks,
       fontSizes, fontFamilies, emojis, placeholder, fixPlaceholder, headings, imageControls, imageResizable, lineHeights, letterSpacings, textAligns, textBackgroundColor, allowInsertLinkText, defaultLinkTarget,
       extendAtomics, className, style, controlBarClassName, controlBarStyle, contentClassName, contentStyle, stripPastedStyles, componentBelowControlBar
     } = this.editorProps
-
     const { isFullscreen, editorState } = this.state
 
     editorId = editorId || id
@@ -417,6 +637,8 @@ export default class BraftEditor extends React.Component {
       handlePastedText: this.handlePastedText,
       handlePastedFiles: this.handlePastedFiles,
       onChange: this.onChange,
+      onUpArrow: this.onUpArrow,
+      onDownArrow: this.onDownArrow,
       onTab: this.onTab,
       onFocus: this.onFocus,
       onBlur: this.onBlur,
@@ -428,22 +650,28 @@ export default class BraftEditor extends React.Component {
     }
 
     return (
-      <div
-        style={style}
-        ref={this.setEditorContainerNode}
-        className={`bf-container ${className}${(disabled ? ' disabled' : '')}${(readOnly ? ' read-only' : '')}${isFullscreen ? ' fullscreen' : ''}`}
-      >
-        <ControlBar {...controlBarProps} />
-        {componentBelowControlBar}
+      <React.Fragment>
+        {this.renderAutocomplete()}
         <div
-          onCompositionStart={this.handleCompositionStart}
-          className={`bf-content ${contentClassName}`}
-          onCopy={this.handleCopyContent}
-          style={contentStyle}
+          id='editor'
+          style={style}
+          ref={this.setEditorContainerNode}
+          className={`bf-container ${className}${(disabled ? ' disabled' : '')}${(readOnly ? ' read-only' : '')}${isFullscreen ? ' fullscreen' : ''}`}
         >
-          <Editor {...draftProps} />
+          <ControlBar {...controlBarProps} />
+          {componentBelowControlBar}
+
+          <div
+            onCompositionStart={this.handleCompositionStart}
+            className={`bf-content ${contentClassName}`}
+            onCopy={this.handleCopyContent}
+            style={contentStyle}
+          >
+
+            <Editor {...draftProps} />
+          </div>
         </div>
-      </div>
+      </React.Fragment>
     )
 
   }

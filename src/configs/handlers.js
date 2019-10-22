@@ -68,10 +68,19 @@ export const keyCommandHandlers = (command, editorState, editor) => {
 
 }
 
+
+
+
 export const returnHandlers = (event, editorState, editor) => {
 
   if (editor.editorProps.handleReturn && editor.editorProps.handleReturn(event, editorState, editor) === 'handled') {
     return 'handled'
+  }
+
+  let autocompleteState = editor.getAutocompleteState(editorState, false);
+  if (autocompleteState) {
+    editor.commitSelection(event);
+    return 'handle';
   }
 
   const currentBlock = ContentUtils.getSelectionBlock(editorState)
@@ -248,7 +257,6 @@ export const copyHandlers = (event, editor) => {
       const tempContentState = ContentState.createFromBlockArray(blockMap.toArray())
       const tempEditorState = EditorState.createWithContent(tempContentState)
       const clipboardData = (event.clipboardData || window.clipboardData || event.originalEvent.clipboardData)
-
       tempEditorState.setConvertOptions(editor.state.editorState.convertOptions)
 
       clipboardData.setData('text/html', tempEditorState.toHTML())
