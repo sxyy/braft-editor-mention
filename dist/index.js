@@ -185,7 +185,7 @@ module.exports = _createClass;
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var _typeof = __webpack_require__(16);
+var _typeof = __webpack_require__(17);
 
 var assertThisInitialized = __webpack_require__(1);
 
@@ -322,6 +322,18 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__15__;
 
 /***/ }),
 /* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+if (true) {
+  module.exports = __webpack_require__(31);
+} else {}
+
+
+/***/ }),
+/* 17 */
 /***/ (function(module, exports) {
 
 function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
@@ -341,18 +353,6 @@ function _typeof(obj) {
 }
 
 module.exports = _typeof;
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-if (true) {
-  module.exports = __webpack_require__(31);
-} else {}
-
 
 /***/ }),
 /* 18 */
@@ -1509,7 +1509,7 @@ module.exports = _nonIterableRest;
 __webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ../node_modules/@babel/runtime/helpers/typeof.js
-var helpers_typeof = __webpack_require__(16);
+var helpers_typeof = __webpack_require__(17);
 var typeof_default = /*#__PURE__*/__webpack_require__.n(helpers_typeof);
 
 // EXTERNAL MODULE: ../node_modules/@babel/runtime/helpers/objectSpread.js
@@ -2383,7 +2383,7 @@ var external_react_dom_ = __webpack_require__(15);
 var external_react_dom_default = /*#__PURE__*/__webpack_require__.n(external_react_dom_);
 
 // EXTERNAL MODULE: ../node_modules/React/index.js
-var React = __webpack_require__(17);
+var React = __webpack_require__(16);
 var React_default = /*#__PURE__*/__webpack_require__.n(React);
 
 // CONCATENATED MODULE: ./suggest/index.jsx
@@ -2431,6 +2431,8 @@ function (_React$Component) {
   createClass_default()(SuggestionList, [{
     key: "render",
     value: function render() {
+      var _this2 = this;
+
       var suggestionsState = this.props.suggestionsState;
       var left = suggestionsState.left,
           top = suggestionsState.top,
@@ -2443,7 +2445,7 @@ function (_React$Component) {
 
       return React_default.a.createElement("ul", {
         style: {
-          position: 'absolute',
+          position: 'fixed',
           left: left,
           top: top,
           borderRadius: 3,
@@ -2463,8 +2465,16 @@ function (_React$Component) {
             color: 'white',
             borderRadius: 3
           },
-          key: person
+          key: person,
+          onMouseOver: function onMouseOver() {
+            _this2.props.onSelectedChange(index);
+          },
+          onMouseDown: _this2.props.onMentionSelect
         }, person) : React_default.a.createElement("li", {
+          onMouseOver: function onMouseOver() {
+            _this2.props.onSelectedChange(index);
+          },
+          onMouseDown: _this2.props.onMentionSelect,
           style: {
             margin: 0,
             padding: '16px 24px',
@@ -2472,7 +2482,11 @@ function (_React$Component) {
           },
           key: person
         }, person);
-      }, this));
+      }, this), React_default.a.createElement("button", {
+        onClick: function onClick() {
+          return console.log('aaa');
+        }
+      }, "sakdjaskdjaksjdlkaj"));
     }
   }]);
 
@@ -6812,8 +6826,7 @@ function (_React$Component) {
       // tempRange.surroundContents(mark);
 
       var rangeRect = tempRange.getBoundingClientRect();
-      var editReact = document.getElementById('editor').getBoundingClientRect();
-      var _ref = [rangeRect.left - editReact.left, rangeRect.bottom + 10 - editReact.top],
+      var _ref = [rangeRect.left, rangeRect.bottom],
           left = _ref[0],
           top = _ref[1];
       _this.autocompleteState = {
@@ -6857,6 +6870,17 @@ function (_React$Component) {
       return dataArray;
     });
 
+    defineProperty_default()(assertThisInitialized_default()(_this), "updateMentionSelected", function (selectedIndex) {
+      var autocompleteState = _this.state.autocompleteState;
+      autocompleteState.selectedIndex = selectedIndex;
+
+      _this.setState({
+        autocompleteState: autocompleteState
+      });
+
+      _this.autocompleteState = autocompleteState;
+    });
+
     defineProperty_default()(assertThisInitialized_default()(_this), "renderAutocomplete", function () {
       var autocompleteState = _this.state.autocompleteState;
 
@@ -6867,7 +6891,9 @@ function (_React$Component) {
       autocompleteState.array = _this.props.mentions;
       autocompleteState.onSuggestionClick = _this.onSuggestionItemClick;
       return external_react_default.a.createElement(suggest_SuggestionList, {
-        suggestionsState: autocompleteState
+        suggestionsState: autocompleteState,
+        onSelectedChange: _this.updateMentionSelected,
+        onMentionSelect: _this.commitSelection
       });
     });
 
@@ -6974,12 +7000,15 @@ function (_React$Component) {
       }
 
       e.preventDefault();
-      autocompleteState.selectedIndex += nudgeAmount;
-      _this.autocompleteState = autocompleteState;
 
-      _this.setState({
-        autocompleteState: autocompleteState
-      });
+      if (autocompleteState.selectedIndex + nudgeAmount >= 0 && autocompleteState.selectedIndex + nudgeAmount <= _this.props.mentions.length - 1) {
+        autocompleteState.selectedIndex += nudgeAmount;
+        _this.autocompleteState = autocompleteState;
+
+        _this.setState({
+          autocompleteState: autocompleteState
+        });
+      }
     });
 
     defineProperty_default()(assertThisInitialized_default()(_this), "onUpArrow", function (e) {
