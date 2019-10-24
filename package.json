@@ -1,6 +1,6 @@
 {
-  "name": "braft-editor",
-  "version": "2.3.8",
+  "name": "braft-editor-mention",
+  "version": "2.4.4",
   "description": "Rich Text Editor Based On Draft.js",
   "main": "dist/index.js",
   "types": "index.d.ts",
@@ -12,7 +12,7 @@
     "lint": "node_modules/eslint/bin/eslint.js .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": "https://github.com/margox/braft",
+  "repository": "https://github.com/sxyy/braft-editor-mention",
   "keywords": [
     "braft",
     "draft",
