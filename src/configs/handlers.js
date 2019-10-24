@@ -72,7 +72,6 @@ export const keyCommandHandlers = (command, editorState, editor) => {
 
 
 export const returnHandlers = (event, editorState, editor) => {
-
   if (editor.editorProps.handleReturn && editor.editorProps.handleReturn(event, editorState, editor) === 'handled') {
     return 'handled'
   }

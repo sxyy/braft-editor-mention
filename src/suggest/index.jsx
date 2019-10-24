@@ -25,7 +25,7 @@ export default class SuggestionList extends React.Component {
             return null;
         }
         return (<ul style={{
-            position: 'absolute',
+            position: 'fixed',
             left,
             top,
             borderRadius: 3,
@@ -48,9 +48,9 @@ export default class SuggestionList extends React.Component {
                             color: 'white',
                             borderRadius: 3
 
-                        }} key={person}>
+                        }} key={person} onMouseDown={() => {console.log(person)}}>
                             {person}
-                        </li> : <li style={{
+                        </li> : <li onMouseDown = {() => {console.log(person)}} style={{
 
                             margin: 0,
                             padding: '16px 24px',
@@ -64,7 +64,7 @@ export default class SuggestionList extends React.Component {
                 }, this)
             }
 
-
+            <button onClick = {() => (console.log('aaa'))}>sakdjaskdjaksjdlkaj</button>
         </ul>)
     }
 }

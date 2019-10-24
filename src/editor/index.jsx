@@ -285,8 +285,7 @@ export default class BraftEditor extends React.Component {
     // const mark = document.createElement('mark');
     // tempRange.surroundContents(mark);
     const rangeRect = tempRange.getBoundingClientRect();
-    const editReact = document.getElementById('editor').getBoundingClientRect();
-    let [left, top] = [rangeRect.left - editReact.left, rangeRect.bottom + 10 - editReact.top];
+    let [left, top] = [rangeRect.left, rangeRect.bottom ];
     this.autocompleteState = {
       trigger,
       type,
