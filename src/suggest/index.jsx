@@ -11,10 +11,6 @@ export default class SuggestionList extends React.Component {
         return index;
     }
 
-    updateSelected = () => {
-
-    }
-
     render() {
         const {
             suggestionsState
