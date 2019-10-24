@@ -11,6 +11,10 @@ export default class SuggestionList extends React.Component {
         return index;
     }
 
+    updateSelected = () => {
+
+    }
+
     render() {
         const {
             suggestionsState
@@ -48,9 +52,9 @@ export default class SuggestionList extends React.Component {
                             color: 'white',
                             borderRadius: 3
 
-                        }} key={person} onMouseDown={() => {console.log(person)}}>
+                        }} key={person} onMouseOver = {() => {this.props.onSelectedChange(index)}} onMouseDown={this.props.onMentionSelect}>
                             {person}
-                        </li> : <li onMouseDown = {() => {console.log(person)}} style={{
+                        </li> : <li onMouseOver = {() => {this.props.onSelectedChange(index)}} onMouseDown = {this.props.onMentionSelect} style={{
 
                             margin: 0,
                             padding: '16px 24px',

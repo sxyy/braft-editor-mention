@@ -332,6 +332,17 @@ export default class BraftEditor extends React.Component {
     return dataArray;
   }
 
+  updateMentionSelected = (selectedIndex) => {
+    const {
+      autocompleteState,
+    } = this.state; 
+    autocompleteState.selectedIndex = selectedIndex;
+    this.setState({
+      autocompleteState
+    })
+    this.autocompleteState = autocompleteState;
+  }
+
 
   renderAutocomplete = () => {
     const {
@@ -345,6 +356,8 @@ export default class BraftEditor extends React.Component {
     return <SuggestionList suggestionsState={
       autocompleteState
     }
+    onSelectedChange = {this.updateMentionSelected}
+    onMentionSelect = {this.commitSelection}
     />
   };
 
