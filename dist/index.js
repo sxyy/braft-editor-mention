@@ -185,7 +185,7 @@ module.exports = _createClass;
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var _typeof = __webpack_require__(17);
+var _typeof = __webpack_require__(16);
 
 var assertThisInitialized = __webpack_require__(1);
 
@@ -322,18 +322,6 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__15__;
 
 /***/ }),
 /* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-if (true) {
-  module.exports = __webpack_require__(31);
-} else {}
-
-
-/***/ }),
-/* 17 */
 /***/ (function(module, exports) {
 
 function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
@@ -353,6 +341,18 @@ function _typeof(obj) {
 }
 
 module.exports = _typeof;
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+if (true) {
+  module.exports = __webpack_require__(31);
+} else {}
+
 
 /***/ }),
 /* 18 */
@@ -1509,7 +1509,7 @@ module.exports = _nonIterableRest;
 __webpack_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ../node_modules/@babel/runtime/helpers/typeof.js
-var helpers_typeof = __webpack_require__(17);
+var helpers_typeof = __webpack_require__(16);
 var typeof_default = /*#__PURE__*/__webpack_require__.n(helpers_typeof);
 
 // EXTERNAL MODULE: ../node_modules/@babel/runtime/helpers/objectSpread.js
@@ -2383,7 +2383,7 @@ var external_react_dom_ = __webpack_require__(15);
 var external_react_dom_default = /*#__PURE__*/__webpack_require__.n(external_react_dom_);
 
 // EXTERNAL MODULE: ../node_modules/React/index.js
-var React = __webpack_require__(16);
+var React = __webpack_require__(17);
 var React_default = /*#__PURE__*/__webpack_require__.n(React);
 
 // CONCATENATED MODULE: ./suggest/index.jsx
@@ -2482,11 +2482,7 @@ function (_React$Component) {
           },
           key: person
         }, person);
-      }, this), React_default.a.createElement("button", {
-        onClick: function onClick() {
-          return console.log('aaa');
-        }
-      }, "sakdjaskdjaksjdlkaj"));
+      }, this));
     }
   }]);
 
