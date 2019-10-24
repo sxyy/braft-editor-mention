@@ -4,6 +4,10 @@
 #### [使用文档](https://www.yuque.com/margox/be) [在线演示](https://braft.margox.cn/demos/basic)
 ##### 注意，项目当前版本为2.x，如果你使用的是1.x.x版本，请参阅[旧版本文档](https://github.com/margox/braft-editor/blob/old-master/README.md)
 
+
+###  本仓库在原作者的基础上仅增加了@功能，如无此需求，建议仍使用原作者的版本
+
+
 ## 使用前请了解
 Braft Editor是基于draft-js开发的编辑器，而draft-js内部并不是直接使用HTML作为组件状态的，它自己实现了一个EditorState类型，本质上是一个JS对象；在传统富文本编辑器中的一段段的HTML内容对应到EditorState就是一个个的block块；这一点可以通过查看editorState.toRAW()进行验证。
 

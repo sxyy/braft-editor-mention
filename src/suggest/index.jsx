@@ -63,8 +63,6 @@ export default class SuggestionList extends React.Component {
                     );
                 }, this)
             }
-
-            <button onClick = {() => (console.log('aaa'))}>sakdjaskdjaksjdlkaj</button>
         </ul>)
     }
 }
